@@ -11,6 +11,7 @@ Current baseline implementation includes:
 - dataset evaluation CLI
 - versioned profile configuration
 - bundled sample dataset for reproducible smoke tests
+- real-dataset folder/template for final project data collection
 
 ## Mandatory Dataset Checklist
 
@@ -49,6 +50,14 @@ make run-experiments
 ```
 
 Outputs are written to `results/tables/`.
+
+## Real Dataset Preparation
+
+Use the real dataset template and guide:
+
+- metadata template: `data/real/metadata/dataset.template.json`
+- starter profiles: `configs/profiles/v1/multi-color-template.json`
+- collection guide: `docs/dataset-collection-guide.md`
 
 ## CLI Usage
 

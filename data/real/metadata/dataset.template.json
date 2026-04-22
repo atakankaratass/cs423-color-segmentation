@@ -1,0 +1,17 @@
+{
+  "dataset_name": "real-color-counting",
+  "metadata_schema_version": "v1",
+  "profile_set_path": "configs/profiles/v1/multi-color-template.json",
+  "images": [
+    {
+      "image_id": "real-001",
+      "image_path": "data/real/raw/example-image.ppm",
+      "target_color": "red",
+      "expected_count": 3,
+      "lighting": "controlled",
+      "background": "plain",
+      "overlap": "none",
+      "notes": "Replace with a real image path and verified count."
+    }
+  ]
+}

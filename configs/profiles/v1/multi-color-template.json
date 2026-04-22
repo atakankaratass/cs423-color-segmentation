@@ -1,0 +1,114 @@
+{
+  "profile_set_name": "multi-color-template",
+  "profile_set_version": "v1",
+  "profiles": {
+    "rgb_red": {
+      "color_space": "rgb",
+      "lower": [200, 0, 0],
+      "upper": [255, 80, 80],
+      "morphology": {
+        "kernel_size": 3,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 10
+    },
+    "hsv_red": {
+      "color_space": "hsv",
+      "ranges": [
+        {
+          "lower": [0, 120, 50],
+          "upper": [10, 255, 255]
+        },
+        {
+          "lower": [170, 120, 50],
+          "upper": [179, 255, 255]
+        }
+      ],
+      "morphology": {
+        "kernel_size": 3,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 10
+    },
+    "rgb_green": {
+      "color_space": "rgb",
+      "lower": [0, 120, 0],
+      "upper": [120, 255, 120],
+      "morphology": {
+        "kernel_size": 3,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 10
+    },
+    "hsv_green": {
+      "color_space": "hsv",
+      "ranges": [
+        {
+          "lower": [35, 60, 40],
+          "upper": [90, 255, 255]
+        }
+      ],
+      "morphology": {
+        "kernel_size": 3,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 10
+    },
+    "rgb_blue": {
+      "color_space": "rgb",
+      "lower": [0, 0, 120],
+      "upper": [120, 120, 255],
+      "morphology": {
+        "kernel_size": 3,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 10
+    },
+    "hsv_blue": {
+      "color_space": "hsv",
+      "ranges": [
+        {
+          "lower": [90, 60, 40],
+          "upper": [135, 255, 255]
+        }
+      ],
+      "morphology": {
+        "kernel_size": 3,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 10
+    },
+    "rgb_yellow": {
+      "color_space": "rgb",
+      "lower": [150, 150, 0],
+      "upper": [255, 255, 140],
+      "morphology": {
+        "kernel_size": 3,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 10
+    },
+    "hsv_yellow": {
+      "color_space": "hsv",
+      "ranges": [
+        {
+          "lower": [20, 60, 60],
+          "upper": [40, 255, 255]
+        }
+      ],
+      "morphology": {
+        "kernel_size": 3,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 10
+    }
+  }
+}
