@@ -9,6 +9,7 @@ from typing import List, Optional
 from cs423_segmentation.dataset import validate_dataset
 from cs423_segmentation.evaluation import evaluate_dataset, run_experiments
 from cs423_segmentation.reporting import generate_report
+from cs423_segmentation.tuning import tune_profile
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -53,6 +54,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--metadata", required=True, help="Path to the dataset metadata JSON file."
     )
 
+    tuning_parser = subparsers.add_parser(
+        "tune-profile", help="Evaluate small candidate variations around an existing profile."
+    )
+    tuning_parser.add_argument(
+        "--metadata", required=True, help="Path to the dataset metadata JSON file."
+    )
+    tuning_parser.add_argument(
+        "--profile", required=True, help="Existing profile name to tune around."
+    )
+    tuning_parser.add_argument(
+        "--output-dir", required=True, help="Directory where tuning artifacts will be written."
+    )
+
     return parser
 
 
@@ -76,6 +90,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         for error in result["errors"]:
             print(error)
         return 1
+    if args.command == "tune-profile":
+        tune_profile(Path(args.metadata), args.profile, Path(args.output_dir))
+        return 0
 
     parser.error(f"Unsupported command: {args.command}")
     return 2

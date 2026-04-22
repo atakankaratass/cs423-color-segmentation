@@ -48,6 +48,8 @@ make evaluate-rgb
 make evaluate-hsv
 make run-experiments
 make generate-report
+make tune-sample-rgb
+make tune-sample-hsv
 ```
 
 Outputs are written to `results/tables/`.
@@ -58,6 +60,12 @@ Outputs are written to `results/tables/`.
 - `results/reports/sample/condition-summary.csv`
 - `results/reports/sample/masks/*.png`
 - `results/reports/sample/overlays/*.png`
+
+`make tune-sample-rgb` and `make tune-sample-hsv` write ranked tuning artifacts under:
+
+- `results/tuning/sample/.../tuning-results.json`
+- `results/tuning/sample/.../tuning-results.csv`
+- `results/tuning/sample/.../tuning-results.md`
 
 ## Real Dataset Preparation
 

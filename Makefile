@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install-dev format format-check lint test smoke-test validate-pr evaluate-rgb evaluate-hsv run-experiments generate-report validate-real-dataset
+.PHONY: help install-dev format format-check lint test smoke-test validate-pr evaluate-rgb evaluate-hsv run-experiments generate-report validate-real-dataset tune-sample-rgb tune-sample-hsv
 
 help:
 	@echo "Available targets:"
@@ -16,6 +16,8 @@ help:
 	@echo "  make run-experiments - Evaluate all bundled profiles and write a summary"
 	@echo "  make generate-report - Generate CSV summaries and visualization artifacts"
 	@echo "  make validate-real-dataset - Validate real dataset metadata and file references"
+	@echo "  make tune-sample-rgb - Rank small RGB threshold variations on the sample dataset"
+	@echo "  make tune-sample-hsv - Rank small HSV threshold variations on the sample dataset"
 
 install-dev:
 	python3 -m pip install -r requirements-dev.txt
@@ -50,6 +52,12 @@ generate-report:
 
 validate-real-dataset:
 	PYTHONPATH=src python3 -m cs423_segmentation validate-dataset --metadata data/real/metadata/dataset.json
+
+tune-sample-rgb:
+	PYTHONPATH=src python3 -m cs423_segmentation tune-profile --metadata data/sample/metadata/dataset.json --profile rgb_red --output-dir results/tuning/sample/rgb_red
+
+tune-sample-hsv:
+	PYTHONPATH=src python3 -m cs423_segmentation tune-profile --metadata data/sample/metadata/dataset.json --profile hsv_red --output-dir results/tuning/sample/hsv_red
 
 validate-pr:
 	npm run validate:push

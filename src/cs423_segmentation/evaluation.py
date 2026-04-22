@@ -14,10 +14,20 @@ from cs423_segmentation.pipeline import run_pipeline
 def evaluate_dataset(
     metadata_path: Union[str, Path], profile_name: str, output_path: Union[str, Path]
 ) -> dict[str, Any]:
+    summary = evaluate_dataset_summary(metadata_path, profile_name)
+    save_json(output_path, summary)
+    return summary
+
+
+def evaluate_dataset_summary(
+    metadata_path: Union[str, Path],
+    profile_name: str,
+    profile_override: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
     metadata_file = Path(metadata_path).resolve()
     metadata = load_dataset_metadata(metadata_file)
     profile_set = load_profile_set(metadata_file)
-    profile = profile_set["profiles"][profile_name]
+    profile = profile_override or profile_set["profiles"][profile_name]
     dataset_root = metadata_file.parents[3]
 
     per_image_results: list[dict[str, Any]] = []
@@ -73,7 +83,6 @@ def evaluate_dataset(
         "average_runtime_ms": total_runtime_ms / image_count if image_count else 0.0,
         "per_image": per_image_results,
     }
-    save_json(output_path, summary)
     return summary
 
 
