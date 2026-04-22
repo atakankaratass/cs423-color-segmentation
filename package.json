@@ -3,9 +3,9 @@
   "private": true,
   "scripts": {
     "prepare": "husky",
-    "format": "python3 -m ruff format . && prettier --write .",
-    "format:check": "python3 -m ruff format --check . && prettier --check .",
-    "lint": "python3 -m ruff check .",
+    "format": "python3 -m ruff format src tests scripts && prettier --write AGENTS.md CLAUDE.md CONTRIBUTING.md README.md docs/**/*.md .github/**/*.md .github/workflows/*.yml configs/**/*.json data/**/*.json package.json opencode.json",
+    "format:check": "python3 -m ruff format --check src tests scripts && prettier --check AGENTS.md CLAUDE.md CONTRIBUTING.md README.md docs/**/*.md .github/**/*.md .github/workflows/*.yml configs/**/*.json data/**/*.json package.json opencode.json",
+    "lint": "python3 -m ruff check src tests scripts",
     "test": "python3 -m pytest",
     "smoke-test": "python3 scripts/smoke_test.py",
     "validate:push": "npm run format:check && npm run lint && npm run test && npm run smoke-test"

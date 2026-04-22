@@ -10,6 +10,8 @@ build/
 coverage/
 htmlcov/
 results/
+Ders İçerikleri/
+Ders İçerikleri/
 *.pyc
 *.pyo
 *.pyd
