@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 from typing import List, Optional
 
+from cs423_segmentation.dataset import validate_dataset
 from cs423_segmentation.evaluation import evaluate_dataset, run_experiments
 from cs423_segmentation.reporting import generate_report
 
@@ -45,6 +46,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-dir", required=True, help="Directory where report artifacts will be written."
     )
 
+    validate_parser = subparsers.add_parser(
+        "validate-dataset", help="Validate dataset metadata labels, IDs, and file paths."
+    )
+    validate_parser.add_argument(
+        "--metadata", required=True, help="Path to the dataset metadata JSON file."
+    )
+
     return parser
 
 
@@ -61,6 +69,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.command == "generate-report":
         generate_report(Path(args.metadata), Path(args.output_dir))
         return 0
+    if args.command == "validate-dataset":
+        result = validate_dataset(Path(args.metadata))
+        if result["is_valid"]:
+            return 0
+        for error in result["errors"]:
+            print(error)
+        return 1
 
     parser.error(f"Unsupported command: {args.command}")
     return 2

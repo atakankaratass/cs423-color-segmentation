@@ -67,6 +67,12 @@ Use the real dataset template and guide:
 - starter profiles: `configs/profiles/v1/multi-color-template.json`
 - collection guide: `docs/dataset-collection-guide.md`
 
+After your team fills `data/real/metadata/dataset.json`, run:
+
+```bash
+make validate-real-dataset
+```
+
 ## CLI Usage
 
 ```bash
