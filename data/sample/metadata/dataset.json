@@ -1,0 +1,25 @@
+{
+  "dataset_name": "sample-red-counting",
+  "metadata_schema_version": "v1",
+  "profile_set_path": "configs/profiles/v1/red-segmentation.json",
+  "images": [
+    {
+      "image_id": "sample-001",
+      "image_path": "data/sample/raw/two_red_objects.ppm",
+      "target_color": "red",
+      "expected_count": 2,
+      "lighting": "controlled",
+      "background": "plain",
+      "overlap": "none"
+    },
+    {
+      "image_id": "sample-002",
+      "image_path": "data/sample/raw/dim_red_object.ppm",
+      "target_color": "red",
+      "expected_count": 1,
+      "lighting": "dim",
+      "background": "plain",
+      "overlap": "none"
+    }
+  ]
+}

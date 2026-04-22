@@ -1,0 +1,36 @@
+{
+  "profile_set_name": "red-segmentation",
+  "profile_set_version": "v1",
+  "profiles": {
+    "rgb_red": {
+      "color_space": "rgb",
+      "lower": [200, 0, 0],
+      "upper": [255, 80, 80],
+      "morphology": {
+        "kernel_size": 1,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 2
+    },
+    "hsv_red": {
+      "color_space": "hsv",
+      "ranges": [
+        {
+          "lower": [0, 120, 50],
+          "upper": [10, 255, 255]
+        },
+        {
+          "lower": [170, 120, 50],
+          "upper": [179, 255, 255]
+        }
+      ],
+      "morphology": {
+        "kernel_size": 1,
+        "opening_iterations": 1,
+        "closing_iterations": 1
+      },
+      "min_component_size": 2
+    }
+  }
+}

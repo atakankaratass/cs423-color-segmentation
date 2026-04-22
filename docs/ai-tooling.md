@@ -66,3 +66,18 @@ Important:
 The repository CI workflow mirrors the local validation suite.
 
 Local validation remains mandatory. GitHub Actions is the second gate, not the first one.
+
+## Current Implementation Scope
+
+The repository now contains a small but real baseline implementation:
+
+- RGB thresholding pipeline
+- HSV thresholding pipeline
+- binary morphology cleanup
+- connected-component counting
+- dataset evaluation CLI
+- versioned profile loading
+- structured dataset metadata with scene labels
+- bundled sample dataset for reproducible smoke tests
+
+This baseline is intentionally small so the team can extend it safely during the project.

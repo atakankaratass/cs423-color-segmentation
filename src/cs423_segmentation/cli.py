@@ -1,25 +1,55 @@
-"""Command-line entrypoint for the project scaffold."""
+"""Command-line entrypoint for the segmentation and evaluation workflows."""
 
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
+from typing import List, Optional
+
+from cs423_segmentation.evaluation import evaluate_dataset, run_experiments
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CS423 color segmentation CLI")
-    parser.add_argument(
-        "--mode",
-        default="scaffold",
-        choices=["scaffold"],
-        help="Temporary scaffold mode until the image-processing pipeline is added.",
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    evaluate_parser = subparsers.add_parser("evaluate", help="Run a dataset evaluation profile.")
+    evaluate_parser.add_argument(
+        "--metadata", required=True, help="Path to the dataset metadata JSON file."
     )
+    evaluate_parser.add_argument(
+        "--profile", required=True, help="Profile name defined in the metadata file."
+    )
+    evaluate_parser.add_argument(
+        "--output", required=True, help="Where to write the evaluation summary JSON."
+    )
+
+    experiments_parser = subparsers.add_parser(
+        "run-experiments", help="Run all configured profiles and write a combined summary."
+    )
+    experiments_parser.add_argument(
+        "--metadata", required=True, help="Path to the dataset metadata JSON file."
+    )
+    experiments_parser.add_argument(
+        "--output", required=True, help="Where to write the combined experiment summary JSON."
+    )
+
     return parser
 
 
-def main() -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     parser = build_parser()
-    parser.parse_args()
-    return 0
+    args = parser.parse_args(argv)
+
+    if args.command == "evaluate":
+        evaluate_dataset(Path(args.metadata), args.profile, Path(args.output))
+        return 0
+    if args.command == "run-experiments":
+        run_experiments(Path(args.metadata), Path(args.output))
+        return 0
+
+    parser.error(f"Unsupported command: {args.command}")
+    return 2
 
 
 if __name__ == "__main__":
