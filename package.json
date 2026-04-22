@@ -1,0 +1,27 @@
+{
+  "name": "cs423-color-segmentation",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "format": "python3 -m ruff format . && prettier --write .",
+    "format:check": "python3 -m ruff format --check . && prettier --check .",
+    "lint": "python3 -m ruff check .",
+    "test": "python3 -m pytest",
+    "smoke-test": "python3 scripts/smoke_test.py",
+    "validate:push": "npm run format:check && npm run lint && npm run test && npm run smoke-test"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "*.py": [
+      "python3 -m ruff format",
+      "python3 -m ruff check --fix"
+    ],
+    "*.{md,json,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}
