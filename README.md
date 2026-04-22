@@ -47,9 +47,17 @@ This runs:
 make evaluate-rgb
 make evaluate-hsv
 make run-experiments
+make generate-report
 ```
 
 Outputs are written to `results/tables/`.
+
+`make generate-report` writes:
+
+- `results/reports/sample/profile-summary.csv`
+- `results/reports/sample/condition-summary.csv`
+- `results/reports/sample/masks/*.png`
+- `results/reports/sample/overlays/*.png`
 
 ## Real Dataset Preparation
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 from typing import Any, Union
@@ -23,3 +24,12 @@ def save_json(path: Union[str, Path], payload: Any) -> None:
 
 def load_json(path: Union[str, Path]) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def save_csv(path: Union[str, Path], fieldnames: list[str], rows: list[dict[str, Any]]) -> None:
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with destination.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)

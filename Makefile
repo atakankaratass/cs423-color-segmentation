@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install-dev format format-check lint test smoke-test validate-pr evaluate-rgb evaluate-hsv run-experiments
+.PHONY: help install-dev format format-check lint test smoke-test validate-pr evaluate-rgb evaluate-hsv run-experiments generate-report
 
 help:
 	@echo "Available targets:"
@@ -14,6 +14,7 @@ help:
 	@echo "  make evaluate-rgb  - Evaluate the bundled sample dataset with the RGB profile"
 	@echo "  make evaluate-hsv  - Evaluate the bundled sample dataset with the HSV profile"
 	@echo "  make run-experiments - Evaluate all bundled profiles and write a summary"
+	@echo "  make generate-report - Generate CSV summaries and visualization artifacts"
 
 install-dev:
 	python3 -m pip install -r requirements-dev.txt
@@ -42,6 +43,9 @@ evaluate-hsv:
 
 run-experiments:
 	PYTHONPATH=src python3 -m cs423_segmentation run-experiments --metadata data/sample/metadata/dataset.json --output results/tables/experiment-summary.json
+
+generate-report:
+	PYTHONPATH=src python3 -m cs423_segmentation generate-report --metadata data/sample/metadata/dataset.json --output-dir results/reports/sample
 
 validate-pr:
 	npm run validate:push
