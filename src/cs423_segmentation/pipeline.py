@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
 from cs423_segmentation.color import threshold_hsv, threshold_rgb
-from cs423_segmentation.counting import count_connected_components
+from cs423_segmentation.counting import count_connected_components, extract_components
 from cs423_segmentation.morphology import closing, opening
 
 
@@ -41,8 +41,61 @@ def run_pipeline(image: np.ndarray, config: dict[str, Any]) -> PipelineResult:
         kernel_size=int(morphology_config.get("kernel_size", 3)),
         iterations=int(morphology_config.get("closing_iterations", 1)),
     )
+    cleaned = _apply_refinement(image, cleaned, config.get("refinement"))
 
     count, component_sizes = count_connected_components(
         cleaned, min_component_size=min_component_size
     )
     return PipelineResult(count=count, component_sizes=component_sizes, mask=cleaned)
+
+
+def _apply_refinement(
+    image: np.ndarray, mask: np.ndarray, refinement_config: Optional[dict[str, Any]]
+) -> np.ndarray:
+    if not refinement_config:
+        return mask
+    if refinement_config["type"] != "edge_supported":
+        raise ValueError(f"Unsupported refinement type: {refinement_config['type']}")
+
+    gradient_threshold = float(refinement_config.get("gradient_threshold", 40))
+    min_edge_fraction = float(refinement_config.get("min_edge_fraction", 0.2))
+    grayscale = image.astype(np.float32).mean(axis=-1)
+
+    refined = np.zeros(mask.shape, dtype=bool)
+    for component in extract_components(mask, min_component_size=1):
+        edge_fraction = _component_internal_edge_fraction(grayscale, component, gradient_threshold)
+        if edge_fraction >= min_edge_fraction:
+            refined |= component
+    return refined
+
+
+def _component_internal_edge_fraction(
+    grayscale: np.ndarray, component: np.ndarray, threshold: float
+) -> float:
+    component_size = int(component.sum())
+    if component_size == 0:
+        return 0.0
+
+    rows, cols = np.nonzero(component)
+    row_start, row_end = int(rows.min()), int(rows.max()) + 1
+    col_start, col_end = int(cols.min()), int(cols.max()) + 1
+    component_crop = component[row_start:row_end, col_start:col_end]
+    grayscale_crop = grayscale[row_start:row_end, col_start:col_end]
+
+    supported_pixels = np.zeros(component_crop.shape, dtype=bool)
+
+    vertical_pairs = component_crop[:-1, :] & component_crop[1:, :]
+    vertical_support = vertical_pairs & (
+        np.abs(grayscale_crop[:-1, :] - grayscale_crop[1:, :]) >= threshold
+    )
+    supported_pixels[:-1, :] |= vertical_support
+    supported_pixels[1:, :] |= vertical_support
+
+    horizontal_pairs = component_crop[:, :-1] & component_crop[:, 1:]
+    horizontal_support = horizontal_pairs & (
+        np.abs(grayscale_crop[:, :-1] - grayscale_crop[:, 1:]) >= threshold
+    )
+    supported_pixels[:, :-1] |= horizontal_support
+    supported_pixels[:, 1:] |= horizontal_support
+
+    return float(np.logical_and(supported_pixels, component_crop).sum()) / component_size
