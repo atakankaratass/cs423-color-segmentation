@@ -15,3 +15,6 @@ Ders İçerikleri/
 *.pyc
 *.pyo
 *.pyd
+docs/team-notes/
+docs/superpowers/specs/2026-04-24-team-notes-design.md
+docs/superpowers/plans/2026-04-24-team-notes.md
