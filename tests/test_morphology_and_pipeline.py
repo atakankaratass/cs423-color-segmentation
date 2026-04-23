@@ -58,3 +58,62 @@ def test_hsv_pipeline_keeps_dim_red_object_when_value_threshold_allows_it() -> N
         },
     )
     assert result.count == 1
+
+
+def test_hsv_edge_refinement_filters_out_flat_false_positive_region() -> None:
+    image = np.array(
+        [
+            [
+                [255, 255, 255],
+                [255, 255, 255],
+                [255, 255, 255],
+                [255, 255, 255],
+                [220, 40, 40],
+                [220, 40, 40],
+            ],
+            [
+                [255, 255, 255],
+                [255, 0, 0],
+                [100, 0, 0],
+                [255, 255, 255],
+                [220, 40, 40],
+                [220, 40, 40],
+            ],
+            [
+                [255, 255, 255],
+                [255, 0, 0],
+                [100, 0, 0],
+                [255, 255, 255],
+                [220, 40, 40],
+                [220, 40, 40],
+            ],
+            [
+                [255, 255, 255],
+                [255, 255, 255],
+                [255, 255, 255],
+                [255, 255, 255],
+                [220, 40, 40],
+                [220, 40, 40],
+            ],
+        ],
+        dtype=np.uint8,
+    )
+    result = run_pipeline(
+        image,
+        {
+            "color_space": "hsv",
+            "ranges": [
+                {"lower": [0, 100, 50], "upper": [10, 255, 255]},
+                {"lower": [170, 100, 50], "upper": [179, 255, 255]},
+            ],
+            "morphology": {"kernel_size": 1, "opening_iterations": 1, "closing_iterations": 1},
+            "min_component_size": 1,
+            "refinement": {
+                "type": "edge_supported",
+                "gradient_threshold": 40,
+                "min_edge_fraction": 0.3,
+            },
+        },
+    )
+    assert result.count == 1
+    assert result.component_sizes == [4]
