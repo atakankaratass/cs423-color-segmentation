@@ -5,6 +5,7 @@ from cs423_segmentation.reporting import (
     build_condition_summary_rows,
     build_error_rows,
     build_error_type_rows,
+    build_report_bundle,
     build_worst_case_rows,
     generate_report,
 )
@@ -43,15 +44,16 @@ def test_build_condition_summary_rows_groups_by_condition() -> None:
 
 def test_generate_report_writes_csv_and_visualization_artifacts(tmp_path: Path) -> None:
     report = generate_report("data/sample/metadata/dataset.json", tmp_path)
-    profile_summary = tmp_path / "profile-summary.csv"
-    condition_summary = tmp_path / "condition-summary.csv"
-    profile_summary_md = tmp_path / "profile-summary.md"
-    condition_summary_md = tmp_path / "condition-summary.md"
-    error_analysis = tmp_path / "error-analysis.csv"
-    worst_cases = tmp_path / "worst-cases.csv"
-    error_type_summary = tmp_path / "error-type-summary.csv"
-    mask_image = tmp_path / "masks" / "sample-001-hsv_red.png"
-    overlay_image = tmp_path / "overlays" / "sample-001-hsv_red.png"
+    profile_summary = tmp_path / "tables" / "profile-summary.csv"
+    condition_summary = tmp_path / "tables" / "condition-summary.csv"
+    profile_summary_md = tmp_path / "tables" / "profile-summary.md"
+    condition_summary_md = tmp_path / "tables" / "condition-summary.md"
+    error_analysis = tmp_path / "tables" / "error-analysis.csv"
+    worst_cases = tmp_path / "tables" / "worst-cases.csv"
+    error_type_summary = tmp_path / "tables" / "error-type-summary.csv"
+    figure_svg = tmp_path / "figures" / "profile-accuracy.svg"
+    mask_image = tmp_path / "visuals" / "masks" / "sample-001-hsv_red.png"
+    overlay_image = tmp_path / "visuals" / "overlays" / "sample-001-hsv_red.png"
 
     assert report["experiment_summary"]["profile_set_version"] == "v1"
     assert profile_summary.exists()
@@ -61,6 +63,7 @@ def test_generate_report_writes_csv_and_visualization_artifacts(tmp_path: Path) 
     assert error_analysis.exists()
     assert worst_cases.exists()
     assert error_type_summary.exists()
+    assert figure_svg.exists()
     assert mask_image.exists()
     assert overlay_image.exists()
 
@@ -110,3 +113,23 @@ def test_error_analysis_helpers_extract_miscounts_and_types() -> None:
     assert error_rows[0]["image_id"] == "bad-1"
     assert len(worst_rows) == 1
     assert any(row["error_type"] == "undercount" and row["image_count"] == 1 for row in type_rows)
+
+
+def test_build_report_bundle_writes_structured_output_tree(tmp_path: Path) -> None:
+    bundle = build_report_bundle("data/sample/metadata/dataset.json", tmp_path, include_tuning=True)
+    assert bundle["validation"]["is_valid"] is True
+    assert (tmp_path / "README.md").exists()
+    assert (tmp_path / "tables" / "profile-summary.csv").exists()
+    assert (tmp_path / "figures" / "profile-runtime.svg").exists()
+    assert (tmp_path / "details" / "experiment-summary.json").exists()
+    assert (tmp_path / "visuals" / "masks" / "sample-001-hsv_red.png").exists()
+    assert (tmp_path / "tuning" / "hsv_red" / "tuning-results.md").exists()
+
+
+def test_build_report_bundle_skip_tuning_omits_tuning_artifacts(tmp_path: Path) -> None:
+    bundle = build_report_bundle(
+        "data/sample/metadata/dataset.json", tmp_path, include_tuning=False
+    )
+    assert bundle["validation"]["is_valid"] is True
+    assert (tmp_path / "tables" / "profile-summary.csv").exists()
+    assert not (tmp_path / "tuning").exists()
