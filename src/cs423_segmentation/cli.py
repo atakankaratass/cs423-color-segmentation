@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 from typing import List, Optional
 
 from cs423_segmentation.dataset import validate_dataset
 from cs423_segmentation.evaluation import evaluate_dataset, run_experiments
-from cs423_segmentation.reporting import generate_report
+from cs423_segmentation.reporting import build_report_bundle, generate_report
 from cs423_segmentation.tuning import tune_profile
 
 
@@ -67,6 +68,20 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-dir", required=True, help="Directory where tuning artifacts will be written."
     )
 
+    bundle_parser = subparsers.add_parser(
+        "build-bundle",
+        help="Validate dataset, generate structured report outputs, and optionally tune profiles.",
+    )
+    bundle_parser.add_argument(
+        "--metadata", required=True, help="Path to the dataset metadata JSON file."
+    )
+    bundle_parser.add_argument(
+        "--output-dir", required=True, help="Directory where bundle artifacts will be written."
+    )
+    bundle_parser.add_argument(
+        "--skip-tuning", action="store_true", help="Skip per-profile tuning artifacts."
+    )
+
     return parser
 
 
@@ -92,6 +107,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 1
     if args.command == "tune-profile":
         tune_profile(Path(args.metadata), args.profile, Path(args.output_dir))
+        return 0
+    if args.command == "build-bundle":
+        try:
+            build_report_bundle(
+                Path(args.metadata), Path(args.output_dir), include_tuning=not args.skip_tuning
+            )
+        except (FileNotFoundError, ValueError) as error:
+            print(error, file=sys.stderr)
+            return 1
         return 0
 
     parser.error(f"Unsupported command: {args.command}")

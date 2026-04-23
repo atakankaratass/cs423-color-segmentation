@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install-dev format format-check lint test smoke-test validate-pr evaluate-rgb evaluate-hsv run-experiments generate-report validate-real-dataset tune-sample-rgb tune-sample-hsv
+.PHONY: help install-dev format format-check lint test smoke-test validate-pr evaluate-rgb evaluate-hsv run-experiments generate-report validate-real-dataset tune-sample-rgb tune-sample-hsv build-sample-bundle build-real-bundle
 
 help:
 	@echo "Available targets:"
@@ -18,6 +18,8 @@ help:
 	@echo "  make validate-real-dataset - Validate real dataset metadata and file references"
 	@echo "  make tune-sample-rgb - Rank small RGB threshold variations on the sample dataset"
 	@echo "  make tune-sample-hsv - Rank small HSV threshold variations on the sample dataset"
+	@echo "  make build-sample-bundle - Generate a full structured sample bundle"
+	@echo "  make build-real-bundle - Validate and generate a full structured real-data bundle"
 
 install-dev:
 	python3 -m pip install -r requirements-dev.txt
@@ -58,6 +60,12 @@ tune-sample-rgb:
 
 tune-sample-hsv:
 	PYTHONPATH=src python3 -m cs423_segmentation tune-profile --metadata data/sample/metadata/dataset.json --profile hsv_red --output-dir results/tuning/sample/hsv_red
+
+build-sample-bundle:
+	PYTHONPATH=src python3 -m cs423_segmentation build-bundle --metadata data/sample/metadata/dataset.json --output-dir results/bundles/sample
+
+build-real-bundle:
+	PYTHONPATH=src python3 -m cs423_segmentation build-bundle --metadata data/real/metadata/dataset.json --output-dir results/bundles/real
 
 validate-pr:
 	npm run validate:push

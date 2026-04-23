@@ -50,22 +50,39 @@ make run-experiments
 make generate-report
 make tune-sample-rgb
 make tune-sample-hsv
+make build-sample-bundle
 ```
 
-Outputs are written to `results/tables/`.
+Outputs are written under the command-specific output directories.
 
 `make generate-report` writes:
 
-- `results/reports/sample/profile-summary.csv`
-- `results/reports/sample/condition-summary.csv`
-- `results/reports/sample/masks/*.png`
-- `results/reports/sample/overlays/*.png`
+- `results/reports/sample/tables/profile-summary.csv`
+- `results/reports/sample/tables/condition-summary.csv`
+- `results/reports/sample/figures/profile-accuracy.svg`
+- `results/reports/sample/details/experiment-summary.json`
+- `results/reports/sample/visuals/masks/*.png`
+- `results/reports/sample/visuals/overlays/*.png`
 
 `make tune-sample-rgb` and `make tune-sample-hsv` write ranked tuning artifacts under:
 
 - `results/tuning/sample/.../tuning-results.json`
 - `results/tuning/sample/.../tuning-results.csv`
 - `results/tuning/sample/.../tuning-results.md`
+
+`make build-sample-bundle` writes a structured final-material bundle under:
+
+- `results/bundles/sample/tables/`
+- `results/bundles/sample/figures/`
+- `results/bundles/sample/details/`
+- `results/bundles/sample/visuals/`
+- `results/bundles/sample/tuning/`
+
+When the real dataset is ready, run:
+
+```bash
+make build-real-bundle
+```
 
 ## Real Dataset Preparation
 

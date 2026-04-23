@@ -24,21 +24,29 @@ def generate_report(
     report_root = Path(output_dir)
     report_root.mkdir(parents=True, exist_ok=True)
 
+    tables_dir = report_root / "tables"
+    figures_dir = report_root / "figures"
+    details_dir = report_root / "details"
+    masks_dir = report_root / "visuals" / "masks"
+    overlays_dir = report_root / "visuals" / "overlays"
+    for directory in (tables_dir, figures_dir, details_dir, masks_dir, overlays_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
     experiment_summary = run_experiments(
-        metadata_file, report_root / "experiment-summary.json", selected_profiles
+        metadata_file, details_dir / "experiment-summary.json", selected_profiles
     )
     detail_summaries = [
-        evaluate_dataset(metadata_file, profile_name, report_root / f"{profile_name}-detail.json")
+        evaluate_dataset(metadata_file, profile_name, details_dir / f"{profile_name}-detail.json")
         for profile_name in selected_profiles
     ]
 
     save_csv(
-        report_root / "profile-summary.csv",
+        tables_dir / "profile-summary.csv",
         ["profile", "exact_match_accuracy", "mean_absolute_error", "average_runtime_ms"],
         experiment_summary["profiles"],
     )
     save_text(
-        report_root / "profile-summary.md",
+        tables_dir / "profile-summary.md",
         build_markdown_table(
             experiment_summary["profiles"],
             ["profile", "exact_match_accuracy", "mean_absolute_error", "average_runtime_ms"],
@@ -53,7 +61,7 @@ def generate_report(
 
     condition_rows = build_condition_summary_rows(detail_summaries)
     save_csv(
-        report_root / "condition-summary.csv",
+        tables_dir / "condition-summary.csv",
         [
             "profile",
             "condition_type",
@@ -65,7 +73,7 @@ def generate_report(
         condition_rows,
     )
     save_text(
-        report_root / "condition-summary.md",
+        tables_dir / "condition-summary.md",
         build_markdown_table(
             condition_rows,
             [
@@ -92,7 +100,7 @@ def generate_report(
     error_type_rows = build_error_type_rows(detail_summaries)
 
     save_csv(
-        report_root / "error-analysis.csv",
+        tables_dir / "error-analysis.csv",
         [
             "profile",
             "image_id",
@@ -110,7 +118,7 @@ def generate_report(
         error_rows,
     )
     save_text(
-        report_root / "error-analysis.md",
+        tables_dir / "error-analysis.md",
         build_markdown_table(
             error_rows,
             [
@@ -137,7 +145,7 @@ def generate_report(
     )
 
     save_csv(
-        report_root / "worst-cases.csv",
+        tables_dir / "worst-cases.csv",
         [
             "profile",
             "image_id",
@@ -151,7 +159,7 @@ def generate_report(
         worst_case_rows,
     )
     save_text(
-        report_root / "worst-cases.md",
+        tables_dir / "worst-cases.md",
         build_markdown_table(
             worst_case_rows,
             [
@@ -178,12 +186,12 @@ def generate_report(
     )
 
     save_csv(
-        report_root / "error-type-summary.csv",
+        tables_dir / "error-type-summary.csv",
         ["profile", "error_type", "image_count", "rate"],
         error_type_rows,
     )
     save_text(
-        report_root / "error-type-summary.md",
+        tables_dir / "error-type-summary.md",
         build_markdown_table(
             error_type_rows,
             ["profile", "error_type", "image_count", "rate"],
@@ -196,15 +204,54 @@ def generate_report(
         ),
     )
 
-    _write_visualizations(metadata_file, profile_set["profiles"], selected_profiles, report_root)
+    _write_visualizations(
+        metadata_file,
+        profile_set["profiles"],
+        selected_profiles,
+        masks_dir,
+        overlays_dir,
+    )
+    _write_figure_exports(experiment_summary["profiles"], condition_rows, figures_dir)
     return {
         "experiment_summary": experiment_summary,
         "condition_rows": condition_rows,
         "error_rows": error_rows,
         "worst_case_rows": worst_case_rows,
         "error_type_rows": error_type_rows,
+        "tables_dir": str(tables_dir),
+        "figures_dir": str(figures_dir),
+        "details_dir": str(details_dir),
         "output_dir": str(report_root),
     }
+
+
+def build_report_bundle(
+    metadata_path: Union[str, Path], output_dir: Union[str, Path], include_tuning: bool = True
+) -> dict[str, Any]:
+    metadata_file = Path(metadata_path).resolve()
+    validation = validate_dataset_or_raise(metadata_file)
+    report = generate_report(metadata_file, output_dir)
+    tuning_outputs = []
+    if include_tuning:
+        from cs423_segmentation.tuning import tune_profile
+
+        profile_set = load_profile_set(metadata_file)
+        tuning_root = Path(output_dir) / "tuning"
+        tuning_root.mkdir(parents=True, exist_ok=True)
+        for profile_name in sorted(profile_set["profiles"]):
+            tuning_outputs.append(
+                tune_profile(metadata_file, profile_name, tuning_root / profile_name)
+            )
+    bundle_summary = {
+        "validation": validation,
+        "report": report,
+        "tuning": tuning_outputs,
+    }
+    save_text(
+        Path(output_dir) / "README.md",
+        _build_bundle_readme(report, include_tuning=include_tuning),
+    )
+    return bundle_summary
 
 
 def build_condition_summary_rows(detail_summaries: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -326,7 +373,8 @@ def _write_visualizations(
     metadata_path: Path,
     profiles: dict[str, dict[str, Any]],
     selected_profiles: list[str],
-    report_root: Path,
+    masks_dir: Path,
+    overlays_dir: Path,
 ) -> None:
     metadata = load_dataset_metadata(metadata_path)
     dataset_root = metadata_path.parents[3]
@@ -336,5 +384,97 @@ def _write_visualizations(
         for profile_name in selected_profiles:
             result = run_pipeline(image, profiles[profile_name])
             base_name = f"{item['image_id']}-{profile_name}"
-            save_mask_image(result.mask, report_root / "masks" / f"{base_name}.png")
-            save_overlay_image(image, result.mask, report_root / "overlays" / f"{base_name}.png")
+            save_mask_image(result.mask, masks_dir / f"{base_name}.png")
+            save_overlay_image(image, result.mask, overlays_dir / f"{base_name}.png")
+
+
+def _write_figure_exports(
+    profile_rows: list[dict[str, Any]], condition_rows: list[dict[str, Any]], figures_dir: Path
+) -> None:
+    save_text(figures_dir / "profile-accuracy.svg", _build_profile_accuracy_svg(profile_rows))
+    save_text(figures_dir / "profile-runtime.svg", _build_profile_runtime_svg(profile_rows))
+    save_text(
+        figures_dir / "lighting-accuracy.svg", _build_condition_svg(condition_rows, "lighting")
+    )
+
+
+def _build_profile_accuracy_svg(profile_rows: list[dict[str, Any]]) -> str:
+    return _build_bar_chart_svg(
+        title="Profile Accuracy",
+        items=[(row["profile"], row["exact_match_accuracy"]) for row in profile_rows],
+        max_value=1.0,
+    )
+
+
+def _build_profile_runtime_svg(profile_rows: list[dict[str, Any]]) -> str:
+    max_runtime = max((row["average_runtime_ms"] for row in profile_rows), default=1.0)
+    return _build_bar_chart_svg(
+        title="Profile Runtime (ms)",
+        items=[(row["profile"], row["average_runtime_ms"]) for row in profile_rows],
+        max_value=max_runtime or 1.0,
+    )
+
+
+def _build_condition_svg(condition_rows: list[dict[str, Any]], condition_type: str) -> str:
+    filtered = [
+        (f"{row['profile']}:{row['condition_value']}", row["exact_match_accuracy"])
+        for row in condition_rows
+        if row["condition_type"] == condition_type
+    ]
+    return _build_bar_chart_svg(
+        title=f"{condition_type.title()} Accuracy",
+        items=filtered,
+        max_value=1.0,
+    )
+
+
+def _build_bar_chart_svg(title: str, items: list[tuple[str, float]], max_value: float) -> str:
+    width = 720
+    row_height = 36
+    chart_left = 180
+    chart_width = 460
+    height = 80 + max(len(items), 1) * row_height
+    safe_max = max(max_value, 1e-6)
+    bars = []
+    for index, (label, value) in enumerate(items):
+        y = 50 + index * row_height
+        bar_width = int((value / safe_max) * chart_width)
+        bars.append(
+            f'<text x="20" y="{y + 18}" font-size="14">{label}</text>'
+            f'<rect x="{chart_left}" y="{y}" width="{bar_width}" height="20" fill="#2f6fed" />'
+            f'<text x="{chart_left + bar_width + 8}" y="{y + 16}" font-size="13">{value:.4f}</text>'
+        )
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">'
+        f'<rect width="100%" height="100%" fill="white" />'
+        f'<text x="20" y="28" font-size="20" font-weight="bold">{title}</text>'
+        + "".join(bars)
+        + "</svg>"
+    )
+
+
+def validate_dataset_or_raise(metadata_path: Path) -> dict[str, Any]:
+    from cs423_segmentation.dataset import validate_dataset
+
+    result = validate_dataset(metadata_path)
+    if result["is_valid"]:
+        return result
+    raise ValueError("Dataset validation failed: " + "; ".join(result["errors"]))
+
+
+def _build_bundle_readme(report: dict[str, Any], include_tuning: bool) -> str:
+    lines = [
+        "# Report Bundle",
+        "",
+        "Generated artifacts:",
+        "",
+        "- `tables/`: CSV and Markdown summaries",
+        "- `figures/`: SVG figure exports for report/presentation reuse",
+        "- `details/`: raw JSON summaries for each profile",
+        "- `visuals/masks/`: binary mask images",
+        "- `visuals/overlays/`: overlay previews",
+    ]
+    if include_tuning:
+        lines.append("- `tuning/`: candidate threshold rankings per profile")
+    lines.extend(["", f"Profiles in bundle: {len(report['experiment_summary']['profiles'])}"])
+    return "\n".join(lines) + "\n"
