@@ -10,11 +10,16 @@ import numpy as np
 def count_connected_components(
     mask: np.ndarray, min_component_size: int = 1
 ) -> tuple[int, list[int]]:
+    components = extract_components(mask, min_component_size=min_component_size)
+    return len(components), [int(component.sum()) for component in components]
+
+
+def extract_components(mask: np.ndarray, min_component_size: int = 1) -> list[np.ndarray]:
     if mask.ndim != 2:
         raise ValueError("Connected-component counting expects a 2D mask.")
 
     visited = np.zeros(mask.shape, dtype=bool)
-    component_sizes: list[int] = []
+    components: list[np.ndarray] = []
     rows, cols = mask.shape
 
     for row in range(rows):
@@ -24,21 +29,21 @@ def count_connected_components(
 
             queue = deque([(row, col)])
             visited[row, col] = True
-            size = 0
+            component_mask = np.zeros(mask.shape, dtype=bool)
 
             while queue:
                 current_row, current_col = queue.popleft()
-                size += 1
+                component_mask[current_row, current_col] = True
                 for next_row, next_col in _neighbors(current_row, current_col, rows, cols):
                     if not mask[next_row, next_col] or visited[next_row, next_col]:
                         continue
                     visited[next_row, next_col] = True
                     queue.append((next_row, next_col))
 
-            if size >= min_component_size:
-                component_sizes.append(size)
+            if int(component_mask.sum()) >= min_component_size:
+                components.append(component_mask)
 
-    return len(component_sizes), component_sizes
+    return components
 
 
 def _neighbors(row: int, col: int, rows: int, cols: int) -> list[tuple[int, int]]:
